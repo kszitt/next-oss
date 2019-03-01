@@ -1,5 +1,5 @@
-const {getFile, getListByFolder, deleteFiles} = require("./oss");
-const {getFolder, message} = require("./base");
+const {getFile, getListByFolder, deleteFiles} = require("../oss/oss");
+const {getFolder, message} = require("../base");
 
 
 let version, removeFiles, folder;

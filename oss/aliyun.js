@@ -1,7 +1,7 @@
 const OSS = require('ali-oss');
-const {getFolder} = require("./base");
+const {getFolder} = require("../base");
 const {setOSSType} = require("./oss");
-let folder, client, output = {};
+let folder, client;
 
 
 

@@ -1,5 +1,5 @@
-const {uploadFile} = require("./oss");
-const {getDirname, message} = require("./base");
+const {uploadFile} = require("../oss/oss");
+const {getDirname, message} = require("../base");
 const fs = require("fs");
 
 let version, dirname;
