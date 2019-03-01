@@ -1,7 +1,7 @@
 {
   "name": "next-oss",
   "version": "0.1.1",
-  "description": "Next.js build file uploaded to SSO",
+  "description": "Next.js build file uploaded to OSS",
   "main": "index.js",
   "scripts": {
     "upload": "cross-env method=upload node oss.js",
