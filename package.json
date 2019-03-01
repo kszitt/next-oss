@@ -1,13 +1,12 @@
 {
   "name": "next-oss",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Next.js build file uploaded to OSS",
   "main": "index.js",
   "scripts": {
     "upload": "cross-env method=upload node oss.js",
     "remove": "cross-env method=remove node oss.js"
   },
-  "keywords": [],
   "author": "kszitt",
   "license": "ISC",
   "homepage": "https://github.com/kszitt/next-oss",
@@ -15,6 +14,11 @@
     "type": "git",
     "url": "git+https://github.com/kszitt/next-oss.git"
   },
+  "keywords": [
+    "next.js",
+    "oss",
+    "cdn"
+  ],
   "devDependencies": {
     "ali-oss": "^6.1.0",
     "cross-env": "^5.2.0"
