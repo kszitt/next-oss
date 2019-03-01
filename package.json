@@ -1,6 +1,6 @@
 {
   "name": "next-oss",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Next.js build file uploaded to SSO",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,11 @@
   "keywords": [],
   "author": "kszitt",
   "license": "ISC",
+  "homepage": "https://github.com/kszitt/next-oss",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kszitt/next-oss.git"
+  },
   "devDependencies": {
     "ali-oss": "^6.1.0",
     "cross-env": "^5.2.0"
