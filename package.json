@@ -1,0 +1,17 @@
+{
+  "name": "next-oss",
+  "version": "0.1.0",
+  "description": "Next.js build file uploaded to SSO",
+  "main": "index.js",
+  "scripts": {
+    "upload": "cross-env method=upload node oss.js",
+    "remove": "cross-env method=remove node oss.js"
+  },
+  "keywords": [],
+  "author": "kszitt",
+  "license": "ISC",
+  "devDependencies": {
+    "ali-oss": "^6.1.0",
+    "cross-env": "^5.2.0"
+  }
+}
