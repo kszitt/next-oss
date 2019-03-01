@@ -1,6 +1,6 @@
 {
   "name": "next-oss",
-  "version": "1.0.1",
+  "version": "1.1.1",
   "description": "Next.js build file uploaded to OSS",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "url": "git+https://github.com/kszitt/next-oss.git"
   },
   "keywords": [
-    "next.js",
+    "next",
     "oss",
     "cdn"
   ],
