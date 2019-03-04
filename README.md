@@ -5,7 +5,7 @@
 将next.js打包生成的.next文件夹上传到云端，以提高加载速度。  
 在自己的服务器上（服务器带宽太小了）  
 <img alt="screen shot 2019-3-4 at 9 35 27 am" src="https://apl-static.oss-cn-beijing.aliyuncs.com/a0fa6c143e1d11e9a7df0242c0a80003.png">  
-上传到云端后
+上传到云端后（看着是240KB，实际上下载下来还是764KB）
 <img alt="screen shot 2019-3-4 at 9 35 27 am" src="https://apl-static.oss-cn-beijing.aliyuncs.com/dd1a6adc3e1d11e99fad0242c0a80003.png">
 
 ## 安装
