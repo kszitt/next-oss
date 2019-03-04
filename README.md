@@ -2,7 +2,11 @@
 [English](https://github.com/kszitt/next-oss/blob/master/README_EN.md)
 
 ## 描述
-将next.js打包生成的.next文件夹上传到云端，以提高加载速度。
+将next.js打包生成的.next文件夹上传到云端，以提高加载速度。  
+在自己的服务器上（服务器带宽太小了）  
+<img alt="screen shot 2019-3-4 at 9 35 27 am" src="https://apl-static.oss-cn-beijing.aliyuncs.com/a0fa6c143e1d11e9a7df0242c0a80003.png">  
+上传到云端后
+<img alt="screen shot 2019-3-4 at 9 35 27 am" src="https://apl-static.oss-cn-beijing.aliyuncs.com/dd1a6adc3e1d11e99fad0242c0a80003.png">
 
 ## 安装
 ```bash
@@ -49,6 +53,12 @@ if(method === "upload"){
 - `folder` - 将要保存到云端的文件夹, 必须传
 - `dirname` - 你需要设置为 `_dirname` 以便找到 `.next` 文件夹, 必须传
 - `log` - 是否打印日志, 默认false
+
+### 添加域名
+在server.js中添加如下代码，其中`folder`要与NextOSS.config()中的`folder`要一致。
+```js
+app.setAssetPrefix("https://<domain name>/<folder>");
+```
 
 ### 添加命令
 在package.json中添加如下命令:
