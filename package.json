@@ -1,6 +1,6 @@
 {
   "name": "next-oss",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Next.js build file uploaded to OSS",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,8 @@
     "oss",
     "cdn"
   ],
-  "devDependencies": {
+  "devDependencies": {},
+  "dependencies": {
     "ali-oss": "^6.1.0",
     "bluebird": "^3.5.3",
     "node-cmd": "^3.0.0"
