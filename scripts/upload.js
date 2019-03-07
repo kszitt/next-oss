@@ -1,6 +1,7 @@
 const {uploadFile} = require("../oss/oss");
 const {getDirname, message} = require("../base");
 const fs = require("fs");
+const os = require('os');
 const cmd = require('node-cmd');
 const Promise = require('bluebird');
 const getAsync = Promise.promisify(cmd.get, { multiArgs: true, context: cmd });
@@ -26,7 +27,9 @@ async function getReadFile(path){
 
 // 删除本地文件
 async function delDir(path){
-  path = path.replace(/\//g, "\\");
+  if(os.platform() !== "linux"){
+    path = path.replace(/\//g, "\\");
+  }
 
   async function mac(){
     try {
