@@ -1,6 +1,6 @@
 {
   "name": "next-oss",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Next.js build file uploaded to OSS",
   "main": "index.js",
   "scripts": {

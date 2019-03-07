@@ -30,6 +30,7 @@ async function delDir(path){
 
   async function mac(){
     try {
+      message(`准备删除文件夹（mac）: ${path}`);
       await getAsync('rm -rf '+ path);
       console.log("删除文件夹成功", path)
     } catch(err){
@@ -38,6 +39,7 @@ async function delDir(path){
   }
 
   async function win(){
+    message(`准备删除文件夹（win）: ${path}`);
     await getAsync('rd /s /q '+ path);
     console.log("删除文件夹成功", path);
   }
@@ -87,6 +89,7 @@ async function removePrevFiles(){
     server_files = await getReaddir(`${dirname}/.next/server/static/`);
   message(`版本号：${build}`);
 
+  message(`files: ${files}`);
   // 删除static下的
   for(let i = 0; i < files.length; i++){
     if(/^[A-Za-z\d_-~!@#$%^&*+=]{21}$/.test(files[i])){
@@ -96,6 +99,7 @@ async function removePrevFiles(){
     }
   }
 
+  message(`server_files: ${server_files}`);
   // 删除server/static下的
   for(let i = 0; i < server_files.length; i++){
     if(/^[A-Za-z\d_-~!@#$%^&*+=]{21}$/.test(server_files[i])){
