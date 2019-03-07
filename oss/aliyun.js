@@ -51,12 +51,10 @@ async function getListByFolder(prefix, delimiter){
 }
 
 // 删除多个文件
-async function deleteFiles(files){
+async function deleteFile(file){
   try {
-    await client.deleteMulti(files);
-    files.forEach(file => {
-      console.log("删除成功：", file);
-    })
+    await client.delete(file);
+    console.log("删除成功：", file);
   } catch (err) {
     console.log (err);
   }
@@ -67,4 +65,4 @@ exports.initAliyun = initAliyun;
 exports.uploadFile = uploadFile;
 exports.getFile = getFile;
 exports.getListByFolder = getListByFolder;
-exports.deleteFiles = deleteFiles;
+exports.deleteFile = deleteFile;

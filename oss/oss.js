@@ -50,13 +50,13 @@ async function getListByFolder(prefix, delimiter){
 }
 
 // 删除多个文件
-async function deleteFiles(files){
+async function deleteFile(file){
   if(noInit()) return;
-  if(!files || files.length === 0) return;
+  if(!file || file.length === 0) return;
 
   switch(OSSType){
     case "aliyun":
-      await aliyun.deleteFiles(files);
+      await aliyun.deleteFile(file);
       break;
   }
 }
@@ -65,4 +65,4 @@ exports.setOSSType = setOSSType;
 exports.uploadFile = uploadFile;
 exports.getFile = getFile;
 exports.getListByFolder = getListByFolder;
-exports.deleteFiles = deleteFiles;
+exports.deleteFile = deleteFile;
