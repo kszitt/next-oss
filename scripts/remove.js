@@ -1,8 +1,8 @@
 const {getFile, getListByFolder, deleteFile} = require("../oss/oss");
-const {getFolder, message} = require("../base");
+const {getOptions, message} = require("../base");
 
 
-let version, folder;
+let version, options;
 
 
 
@@ -10,20 +10,16 @@ let version, folder;
 
 // 获取要刪除的所有文件路径
 async function getAllFiles(){
-  let result = await getListByFolder(folder+"/_next/"),
-    build = await getFile(folder+"/_next/BUILD_ID"),
-    files = result.objects;
-
+  let path = options.isText ?
+    (options.folder+"/_next/") :
+    (options.folder+"/"),
+    files = (await getListByFolder(path)).objects;
 
   for(let i = 0; i < files.length; i++){
-    let file = files[i].name.match(/\/[A-Za-z\d._-]+$/)[0].replace(/^\//, "");
-    // 刪除以前的版本
-    if(/\/static\/.{21}\/pages\//.test(files[i].name)){
-      let newBuild = files[i].name.replace(/.+\/static\//, "").replace(/\/pages\/.+/, "");
-      if(newBuild !== build) {
-        await deleteFile(files[i].name);
-      }
-    } else if(!version[file]){    // 没从版本文件中找到的也删除
+    let file = files[i].name.match(/[^/]*$/)[0];
+    if(!file) continue;
+
+    if(version && !version[file]){
       await deleteFile(files[i].name);
     }
   }
@@ -31,16 +27,18 @@ async function getAllFiles(){
 
 async function remove(){
   try {
-    if(!folder) folder = getFolder();
+    options = getOptions();
 
-    message(`获取版本文件：${folder}/_next/version.json`);
-    version = await getFile(folder+"/_next/version.json");
-    message(`version文件：${version}`);
+    let versionPath = options.isNext ?
+      `${options.folder}/_next/version.json` :
+      `${options.folder}/version.json`;
+
+    version = await getFile(versionPath);
     if(version) version = JSON.parse(version);
 
     await getAllFiles();
 
-    console.log("remove success");
+    console.log("删除成功");
   } catch(err) {
     console.log(err);
   }

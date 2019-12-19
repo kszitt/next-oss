@@ -1,12 +1,9 @@
 {
   "name": "next-oss",
-  "version": "1.2.7",
-  "description": "Next.js build file uploaded to OSS",
+  "version": "2.0.2",
+  "description": "打包文件上传到OSS",
   "main": "index.js",
-  "scripts": {
-    "upload": "cross-env method=upload node oss.js",
-    "remove": "cross-env method=remove node oss.js"
-  },
+  "scripts": {},
   "author": "kszitt",
   "license": "ISC",
   "homepage": "https://github.com/kszitt/next-oss",

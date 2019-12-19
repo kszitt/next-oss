@@ -2,11 +2,7 @@
 [English](https://github.com/kszitt/next-oss/blob/master/README_EN.md)
 
 ## 描述
-将next.js打包生成的.next文件夹上传到云端，以提高加载速度。  
-在自己的服务器上（服务器带宽太小了）  
-<img alt="screen shot 2019-3-4 at 9 35 27 am" src="https://apl-static.oss-cn-beijing.aliyuncs.com/a0fa6c143e1d11e9a7df0242c0a80003.png">  
-上传到云端后（看着是240KB，实际上下载下来还是764KB）
-<img alt="screen shot 2019-3-4 at 9 35 27 am" src="https://apl-static.oss-cn-beijing.aliyuncs.com/dd1a6adc3e1d11e99fad0242c0a80003.png">
+将打包生成的文件上传到云端，以提高加载速度，效果明显   
 
 ## 安装
 ```bash
@@ -24,7 +20,8 @@ Node.js >= 10.10.0 required
 在项目根目录创建`oss.js`，写入如下代码
 ```jsx
 const NextOSS = require("next-oss");
-const {method} = process.env;
+const path = require("path");
+const {METHOD, PREFIX} = process.env;
 
 
 // 初始化aliyun
@@ -36,50 +33,70 @@ NextOSS.initAliyun({
 });
 
 let options = {
-  folder: "<cloud folder>",     // 将要保存到云端的文件夹
-  dirname: __dirname,           // 当前路径
+  folder: PREFIX,     // 云端的文件夹
+  dirname: path.resolve(__dirname, './<upload folder>',           // 要上传的文件夹
 };
 
 NextOSS.config(options);
 
 
-if(method === "upload"){
-  NextOSS.upload();     // 上传
-} else if(method === "remove"){
-  NextOSS.remove();     // 删除以前的版本
+switch(METHOD){
+  case "upload":
+    NextOSS.upload();
+    break;
+  case "remove":
+    NextOSS.remove();
+    break;
+  case "clear":
+    NextOSS.clear();
+    break;
 }
 ```
-#### NextOSS.config支持的选项:
+##### NextOSS.config支持的选项:
 - `folder` - 将要保存到云端的文件夹, 必须传
-- `dirname` - 你需要设置为 `_dirname` 以便找到 `.next` 文件夹, 必须传
-- `log` - 是否打印日志, 默认false
-
-### 添加域名
-在server.js中添加如下代码，其中`folder`要与NextOSS.config()中的`folder`要一致。
-```js
-app.setAssetPrefix("https://<domain name>/<folder>");
-```
+- `dirname` - 要上传的文件夹，必须传。
 
 ### 添加命令
 在package.json中添加如下命令:
 ```json
 {
   "scripts": {
-    "upload": "cross-env method=upload node oss.js",
-    "remove": "cross-env method=remove node oss.js"
+    "upload": "cross-env METHOD=upload PREFIX=<云端文件夹> node oss.js",
+    "remove": "cross-env METHOD=remove PREFIX=<云端文件夹> node oss.js",
+    "clear": "cross-env METHOD=clear PREFIX=<云端文件夹> node oss.js",
+    "build": "npm run clear && npm run <打包命令> && npm run upload && npm run remove"
   }
 }
 ```
 
-### 上传
-```bash
-npm run upload
+### 添加域名
+在server.js中添加如下代码，其中`folder`要与NextOSS.config()中的`folder`要一致。  
+##### webpack项目
+```js
+// webpack配置文件
+ const {PREFIX} = process.env;
+ const webpackConfig = {
+   output: {
+     //...
+     publicPath: `https://<domain name>/${PREFIX}/`
+   }
+ }
+```
+##### next项目
+```js
+// next.config.js
+const {PREFIX} = process.env;
+const nextConfig = {
+  webpack: (config, options) => {
+    if(PREFIX) config.output.publicPath = `https://apl-static.oss-cn-beijing.aliyuncs.com/${PREFIX}`;
+
+    return config;
+  }
+};
 ```
 
-### 删除
+### 部署
 ```bash
-npm run remove
+npm run build
+// 将生成的index.html部署，即可
 ```
-
-
-

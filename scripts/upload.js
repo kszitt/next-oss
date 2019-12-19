@@ -1,22 +1,15 @@
 const {uploadFile} = require("../oss/oss");
-const {getDirname, message} = require("../base");
+const {message, getOptions} = require("../base");
 const fs = require("fs");
-const os = require('os');
-const cmd = require('node-cmd');
-const Promise = require('bluebird');
-const getAsync = Promise.promisify(cmd.get, { multiArgs: true, context: cmd });
-
-
-let version, dirname, platform;
 
 
 
 
+let version, options;
 
 
 // 获取文件夹下所有的文件、文件夹
 async function getReaddir(path, options){
-  message(`查找${path}文件夹`);
   return await fs.readdirSync(path, options);
 }
 
@@ -25,46 +18,18 @@ async function getReadFile(path){
   return await fs.readFileSync(path, {encoding: "utf8"});
 }
 
-// 删除本地文件
-async function delDir(path){
-  if(os.platform() !== "linux"){
-    path = path.replace(/\//g, "\\");
-  }
-
-  async function mac(){
-    try {
-      message(`准备删除文件夹（mac）: ${path}`);
-      await getAsync('rm -rf '+ path);
-      console.log("删除文件夹成功", path)
-    } catch(err){
-      await win();
-    }
-  }
-
-  async function win(){
-    message(`准备删除文件夹（win）: ${path}`);
-    await getAsync('rd /s /q '+ path);
-    console.log("删除文件夹成功", path);
-  }
-
-  await mac();
-}
-
-
-
-
 // 遍历文件、文件夹列表
 async function filesEach(files, path){
   for(let i = 0; i < files.length; i++){
     if(files[i].isFile()){
       // 是文件的话就上传
-      message(`上传：${files[i].name}`);
+      version = version || {};
       version[files[i].name] = true;
       await uploadFile(path + "/" + files[i].name);
     } else if(files[i].isDirectory()){
       // 文件夹递归遍历
       let list = await getReaddir(path + "/" + files[i].name, {withFileTypes: true});
-      await filesEach(list, path + "/" + files[i].name)
+      await filesEach(list, path + "/" + files[i].name);
     }
   }
 }
@@ -74,62 +39,28 @@ async function filesEach(files, path){
 // 写入版本文件
 async function writeVersion(){
   try {
-    message("写入version.json文件");
-    await fs.writeFileSync(`${dirname}/.next/version.json`, JSON.stringify(version));
-    message("写入version.json成功");
-    message(`上传：${dirname}/.next/version.json`);
-    await uploadFile(`${dirname}/.next/version.json`);
+    let versionPath = `${options.dirname}/version.json`;
+
+    await fs.writeFileSync(versionPath, JSON.stringify(version));
+    await uploadFile(versionPath);
   } catch (err) {
     console.log (err);
   }
 }
 
-
-async function removePrevFiles(){
-  message(`获取打包版本号`);
-  let build = await getReadFile(`${dirname}/.next/BUILD_ID`),
-    files = await getReaddir(`${dirname}/.next/static/`),
-    server_files = await getReaddir(`${dirname}/.next/server/static/`);
-  message(`版本号：${build}`);
-
-  message(`files: ${files}`);
-  // 删除static下的
-  for(let i = 0; i < files.length; i++){
-    if(/^[A-Za-z\d_-~!@#$%^&*+=]{21}$/.test(files[i])){
-      if(!eval('/'+ build +'/').test(files[i])) {
-        await delDir(`${dirname}/.next/static/${files[i]}`);
-      }
-    }
-  }
-
-  message(`server_files: ${server_files}`);
-  // 删除server/static下的
-  for(let i = 0; i < server_files.length; i++){
-    if(/^[A-Za-z\d_-~!@#$%^&*+=]{21}$/.test(server_files[i])){
-      if(!eval('/'+ build +'/').test(server_files[i])) {
-        await delDir(`${dirname}/.next/server/static/${server_files[i]}`);
-      }
-    }
-  }
-}
-
-
-
 // 开始上传
 async function upload(){
   try {
-    version = {};
-    dirname = getDirname();
+    now_version = {};
+    options = getOptions();
 
-    await removePrevFiles();
-
-    let path = `${dirname}/.next`,
+    let path = options.dirname,
       files = await getReaddir(path, {withFileTypes: true});
 
     await filesEach(files, path);
     await writeVersion();
 
-    console.log("upload success");
+    console.log("上传成功");
   } catch(err) {
     console.log(err);
   }
