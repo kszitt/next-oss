@@ -84,15 +84,11 @@ switch(METHOD){
 ```
 ##### next项目
 ```js
-// next.config.js
+// next启动文件
 const {PREFIX} = process.env;
-const nextConfig = {
-  webpack: (config, options) => {
-    if(PREFIX) config.output.publicPath = `https://apl-static.oss-cn-beijing.aliyuncs.com/${PREFIX}`;
-
-    return config;
-  }
-};
+if(PREFIX){
+  app.setAssetPrefix(`https://<domain name>/${PREFIX}`);
+}
 ```
 
 ### 部署

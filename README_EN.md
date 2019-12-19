@@ -85,15 +85,11 @@ const webpackConfig = {
 ```
 ##### next project
 ```js
-// next.config.js
+// next start file
 const {PREFIX} = process.env;
-const nextConfig = {
-  webpack: (config, options) => {
-    if(PREFIX) config.output.publicPath = `https://apl-static.oss-cn-beijing.aliyuncs.com/${PREFIX}`;
-
-    return config;
-  }
-};
+if(PREFIX){
+  app.setAssetPrefix(`https://<domain name>/${PREFIX}`);
+}
 ```
 
 ### deploy
