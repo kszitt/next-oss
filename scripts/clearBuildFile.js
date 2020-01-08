@@ -62,21 +62,20 @@ async function removePrevFiles(path=options.dirname){
 
 
 // 清除打包的文件
-async function clear(){
+async function clearBuildFile(){
   try {
     options = getOptions();
 
     // 删除本地之前版本的文件
     await removePrevFiles();
 
-    console.log("清除打包的文件成功");
   } catch(err) {
-    console.log(err);
+    throw err;
   }
 }
 
 
 
-exports.clear = clear;
+exports.clearBuildFile = clearBuildFile;
 
 

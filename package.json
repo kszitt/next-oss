@@ -1,7 +1,7 @@
 {
   "name": "next-oss",
-  "version": "2.0.3",
-  "description": "打包文件上传到OSS",
+  "version": "3.0.1",
+  "description": "webpack打包文件上传到OSS",
   "main": "index.js",
   "scripts": {},
   "author": "kszitt",
@@ -14,7 +14,11 @@
   "keywords": [
     "next",
     "oss",
-    "cdn"
+    "OSS",
+    "cdn",
+    "CDN",
+    "webpack",
+    "build"
   ],
   "devDependencies": {},
   "dependencies": {

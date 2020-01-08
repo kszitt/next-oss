@@ -14,6 +14,7 @@ async function getAllFiles(){
     (options.folder+"/_next/") :
     (options.folder+"/"),
     files = (await getListByFolder(path)).objects;
+  if(!files || files.length === 0) return "none";
 
   for(let i = 0; i < files.length; i++){
     let file = files[i].name.match(/[^/]*$/)[0];
@@ -36,11 +37,12 @@ async function remove(){
     version = await getFile(versionPath);
     if(version) version = JSON.parse(version);
 
-    await getAllFiles();
+    let data = await getAllFiles();
+    if(data === "none") return;
 
     console.log("删除成功");
   } catch(err) {
-    console.log(err);
+    throw err;
   }
 }
 

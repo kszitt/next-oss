@@ -44,7 +44,7 @@ async function writeVersion(){
     await fs.writeFileSync(versionPath, JSON.stringify(version));
     await uploadFile(versionPath);
   } catch (err) {
-    console.log (err);
+    throw err;
   }
 }
 
@@ -56,13 +56,13 @@ async function upload(){
 
     let path = options.dirname,
       files = await getReaddir(path, {withFileTypes: true});
+    if(!files || files.length === 0) return;
 
     await filesEach(files, path);
     await writeVersion();
-
     console.log("上传成功");
   } catch(err) {
-    console.log(err);
+    throw err;
   }
 }
 

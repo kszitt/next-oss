@@ -1,5 +1,5 @@
 const OSS = require('ali-oss');
-const {getOptions} = require("../base");
+const {getOptions, message} = require("../base");
 const {setOSSType} = require("./oss");
 let folder, client, isNext;
 
@@ -12,7 +12,7 @@ function initAliyun(options){
     client.useBucket('apl-static');
     setOSSType("aliyun");
   } catch(err){
-    console.error(err);
+    throw err;
   }
 }
 
@@ -29,9 +29,9 @@ async function uploadFile(path){
       path.replace(dirname, folder);
 
     await client.put(oss_path, path);
-    console.log("上传成功：", path);
+    message("上传："+ path);
   } catch (err) {
-    console.log (err);
+    throw err;
   }
 }
 
@@ -41,7 +41,7 @@ async function getFile(path){
     let file = await client.get(path);
     return file.content.toString("utf8");
   } catch (err) {
-    console.log (err);
+    throw err;
   }
 }
 
@@ -53,7 +53,7 @@ async function getListByFolder(prefix, delimiter){
       delimiter
     });
   } catch (err) {
-    console.log (err);
+    throw err;
   }
 }
 
@@ -61,9 +61,9 @@ async function getListByFolder(prefix, delimiter){
 async function deleteFile(file){
   try {
     await client.delete(file);
-    console.log("删除成功：", file);
+    message("删除："+ path);
   } catch (err) {
-    console.log (err);
+    throw err;
   }
 }
 

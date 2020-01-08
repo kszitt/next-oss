@@ -6,18 +6,8 @@ function setOSSType(type){
   OSSType = type;
 }
 
-// 是否初始化
-function noInit(){
-  if(!OSSType){
-    console.error("Initialize first, using NextOSS.initAliyun (options)");
-  }
-  return !OSSType;
-}
-
 // 上传单个文件
 async function uploadFile(path){
-  if(noInit()) return;
-
   if(!aliyun.uploadFile) aliyun = require("./aliyun");
 
   switch(OSSType){
@@ -29,8 +19,6 @@ async function uploadFile(path){
 
 // 读取文件
 async function getFile(path){
-  if(noInit()) return;
-
   if(!aliyun.getFile) aliyun = require("./aliyun");
 
   switch(OSSType){
@@ -41,8 +29,6 @@ async function getFile(path){
 
 // 获取云文件夹下的文件、文件夹
 async function getListByFolder(prefix, delimiter){
-  if(noInit()) return;
-
   switch(OSSType){
     case "aliyun":
       return await aliyun.getListByFolder(prefix, delimiter);
