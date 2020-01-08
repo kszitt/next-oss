@@ -61,7 +61,7 @@ async function getListByFolder(prefix, delimiter){
 async function deleteFile(file){
   try {
     await client.delete(file);
-    message("删除："+ path);
+    message("删除："+ file);
   } catch (err) {
     throw err;
   }

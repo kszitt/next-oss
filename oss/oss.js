@@ -37,7 +37,6 @@ async function getListByFolder(prefix, delimiter){
 
 // 删除多个文件
 async function deleteFile(file){
-  if(noInit()) return;
   if(!file || file.length === 0) return;
 
   switch(OSSType){
