@@ -1,5 +1,5 @@
 const fs = require("fs");
-let folder, dirname, log, isNext;
+let folder, dirname, log, isNext, OSSFolder, OSSDomainName;
 
 
 // 获取文件夹下所有的文件、文件夹
@@ -16,6 +16,8 @@ function getReadFile(path){
 function config(options){
   folder = options.folder;  // 云文件夹
   dirname = options.dirname;    // 要上传的文件夹
+  OSSFolder = options.OSSFolder;
+  OSSDomainName = options.OSSDomainName;
   log = options.log || false;
   isNext = /\.next$/.test(dirname);  // 是否时next项目
 }
@@ -25,7 +27,9 @@ function getOptions(){
     folder,
     dirname,
     log,
-    isNext
+    isNext,
+    OSSFolder,
+    OSSDomainName
   }
 }
 

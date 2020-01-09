@@ -27,13 +27,8 @@ Node.js >= 10.10.0 required
 ```jsx
 // webpack.config.js
 const NextOss = require('next-oss');
-const {folder, OSSDomainName} = require('./package.json');
+const {folder} = require('./package.json');
 
-...
-output: {
-  ...
-  publicPath: `${OSSDomainName}/${folder}/`
-}
 ...
 plugins: [
   ...

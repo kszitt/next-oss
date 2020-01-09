@@ -1,7 +1,7 @@
 const OSS = require('ali-oss');
 const {getOptions, message} = require("../base");
 const {setOSSType} = require("./oss");
-let folder, client, isNext;
+let options, client;
 
 // 初始化aliyun
 function initAliyun(options){
@@ -17,16 +17,14 @@ function initAliyun(options){
 // 上传单个文件
 async function uploadFile(path){
   try {
-    folder = getOptions().folder;
-    isNext = getOptions().isNext;
-    dirname = getOptions().dirname;
+    options = options || getOptions();
 
-    oss_path =  isNext ?
-      path.replace(/.+?\.next\//, folder+"/_next/") :
-      path.replace(dirname, folder);
+    oss_path =  options.isNext ?
+      path.replace(/.+?\.next\//, options.folder+"/_next/") :
+      path.replace(options.dirname, options.folder);
 
     await client.put(oss_path, path);
-    message("上传："+ path.replace(dirname, "").replace(/^(\/|\\)/, "") + " ==>> " + oss_path);
+    message(`上传：${path.replace(options.dirname, "").replace(/^(\/|\\)/, "")} ==>> ${options.OSSDomainName ? (options.OSSDomainName + "/") : ""}${oss_path}`);
   } catch (err) {
     throw err;
   }

@@ -29,14 +29,19 @@ NextOSS.prototype.apply = function(compiler) {
 
   // 初始化
   this.options.dirname = compiler.options.output.path;
+  const {folder, OSSDomainName} = require(compiler.options.context + "/package.json");
+  this.options.OSSFolder = folder;
+  this.options.OSSDomainName = OSSDomainName;
   if(!this.options.disable) config(this.options);
 
   // 打包完成后
   compiler.plugin('afterEmit', async function() {
     if(!_this.options.disable){
-      await upload();
-      await clearBuildFile();
-      if(_this.options.deletePrevBuildFile) await remove();
+      await setTimeout(async () => {
+        await upload();
+        await clearBuildFile();
+        if(_this.options.deletePrevBuildFile) await remove();
+      }, 100);
     }
   });
 };
