@@ -1,12 +1,6 @@
 const {getFile, getListByFolder, deleteFile} = require("../oss/oss");
 const {getOptions, message} = require("../base");
-
-
 let version, options;
-
-
-
-
 
 // 获取要刪除的所有文件路径
 async function getAllFiles(){

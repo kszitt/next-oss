@@ -31,15 +31,13 @@ NextOSS.prototype.apply = function(compiler) {
   this.options.dirname = compiler.options.output.path;
   if(!this.options.disable) config(this.options);
 
-  // 初始化插件之后
-  compiler.plugin('afterPlugins', function() {
-    if(!_this.options.disable) clearBuildFile();
-  });
-
   // 打包完成后
   compiler.plugin('afterEmit', async function() {
-    if(!_this.options.disable) await upload();
-    if(!_this.options.disable && _this.options.deletePrevBuildFile) await remove();
+    if(!_this.options.disable){
+      await upload();
+      await clearBuildFile();
+      if(_this.options.deletePrevBuildFile) await remove();
+    }
   });
 };
 

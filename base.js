@@ -7,6 +7,11 @@ function getReaddir(path, options){
   return fs.readdirSync(path, options);
 }
 
+// 获取本地文件内容
+function getReadFile(path){
+  return fs.readFileSync(path, {encoding: "utf8"});
+}
+
 // config
 function config(options){
   folder = options.folder;  // 云文件夹
@@ -33,3 +38,5 @@ function message(string){
 exports.config = config;
 exports.getOptions = getOptions;
 exports.message = message;
+exports.getReaddir = getReaddir;
+exports.getReadFile = getReadFile;

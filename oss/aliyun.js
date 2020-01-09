@@ -3,8 +3,6 @@ const {getOptions, message} = require("../base");
 const {setOSSType} = require("./oss");
 let folder, client, isNext;
 
-
-
 // 初始化aliyun
 function initAliyun(options){
   try {
@@ -15,7 +13,6 @@ function initAliyun(options){
     throw err;
   }
 }
-
 
 // 上传单个文件
 async function uploadFile(path){
@@ -29,7 +26,7 @@ async function uploadFile(path){
       path.replace(dirname, folder);
 
     await client.put(oss_path, path);
-    message("上传："+ path);
+    message("上传："+ path.replace(dirname, "").replace(/^(\/|\\)/, "") + " ==>> " + oss_path);
   } catch (err) {
     throw err;
   }
