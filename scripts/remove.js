@@ -11,7 +11,7 @@ async function getAllFiles(){
   if(!files || files.length === 0) return "none";
 
   for(let i = 0; i < files.length; i++){
-    let file = files[i].name.match(/[^/]*$/)[0];
+    let file = files[i].name.replace(/.+?_next\//, "");
     if(!file) continue;
 
     if(version && !version[file]){

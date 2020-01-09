@@ -39,6 +39,7 @@ plugins: [
   ...
   new NextOss({
     folder,
+    disable: process.env.NODE_ENV !== "production",
     aliyun: {
       region: "<OSS region>",
       accessKeyId: "<Your accessKeyId>",
@@ -56,8 +57,8 @@ plugins: [
   "folder": "<Cloud folder>",
   "OSSDomainName": "<Cloud domain name>",
   "scripts": {
-    "build": "next build",  // build command
-    "start": "node server.js"   // start service (You cannot use `next start` here. You need to customize the server)
+    "build": "cross-env NODE_ENV=production next build",  // build command
+    "start": "cross-env NODE_ENV=production node server.js"   // start service (You cannot use `next start` here. You need to customize the server)
   }
 }
 ```
@@ -66,8 +67,8 @@ plugins: [
 // server.js
 const express = require('express');
 const next = require('next');
-const {folder, OSSDomainName} = require('./lib/routes');
-const { NODE_ENV, PORT } = process.env;
+const {folder, OSSDomainName} = require('./package.json');
+const { NODE_ENV, PORT=3000 } = process.env;
 const dev = NODE_ENV !== 'production';
 const app = next({dir: '.', dev});
 
@@ -76,7 +77,7 @@ app.prepare().then(() => {
     const server = express();
 
     // Dynamic prefix
-    app.setAssetPrefix(`${OSSDomainName}/${folder}`);
+    if(NODE_ENV === "production") app.setAssetPrefix(`${OSSDomainName}/${folder}`);
 
     server.listen(PORT, (err) => {
       if (err) {
@@ -104,6 +105,7 @@ const nextConfig = {
       config.plugins.push(
         new NextOss({
          folder,
+         disable: NODE_ENV !== "production",
          aliyun: {
            region: "<OSS region>",
            accessKeyId: "<Your accessKeyId>",
@@ -125,5 +127,5 @@ module.exports = withPlugins([...], nextConfig);
 - `Folder` - Folder to save to cloud
 - `aliyun` - Initialize aliyun information
 - `disable` - Is it disable? default`false`
-- `deletePrevBuildFile` - Delete previous versions of cloud, default`true`
+- `deletePrevBuildFile` - Delete previous versions of cloud, default`false`
 - `log` - Show log or not, default`false`

@@ -39,6 +39,7 @@ plugins: [
   ...
   new NextOss({
     folder,
+    disable: process.env.NODE_ENV !== "production",
     aliyun: {
       region: "<OSS region>",
       accessKeyId: "<Your accessKeyId>",
@@ -56,8 +57,8 @@ plugins: [
   "folder": "<云端文件夹>",
   "OSSDomainName": "<云端域名>",
   "scripts": {
-    "build": "next build",  // 打包命令
-    "start": "node server.js"   // 启动服务（这里不能用next start，得自定义服务端）
+    "build": "cross-env NODE_ENV=production next build",  // 打包命令
+    "start": "cross-env NODE_ENV=production node server.js"   // 启动服务（这里不能用next start，得自定义服务端）
   }
 }
 ```
@@ -66,8 +67,8 @@ plugins: [
 // server.js
 const express = require('express');
 const next = require('next');
-const {folder, OSSDomainName} = require('./lib/routes');
-const { NODE_ENV, PORT } = process.env;
+const {folder, OSSDomainName} = require('./package.json');
+const { NODE_ENV, PORT=3000 } = process.env;
 const dev = NODE_ENV !== 'production';
 const app = next({dir: '.', dev});
 
@@ -76,7 +77,7 @@ app.prepare().then(() => {
     const server = express();
 
     // 动态前缀
-    app.setAssetPrefix(`${OSSDomainName}/${folder}`);
+    if(NODE_ENV === "production") app.setAssetPrefix(`${OSSDomainName}/${folder}`);
 
     server.listen(PORT, (err) => {
       if (err) {
@@ -104,6 +105,7 @@ const nextConfig = {
       config.plugins.push(
         new NextOss({
          folder,
+         disable: NODE_ENV !== "production",
          aliyun: {
            region: "<OSS region>",
            accessKeyId: "<Your accessKeyId>",
@@ -125,6 +127,6 @@ module.exports = withPlugins([...], nextConfig);
 - `Folder` - 将要保存到云端的文件夹。
 - `aliyun` - 初始化阿里云信息。
 - `disable` - 是否禁用，默认`false`
-- `deletePrevBuildFile` - 是否删除云端以前的版本，默认`true`
+- `deletePrevBuildFile` - 是否删除云端以前的版本，默认`false`
 - `log` - 是否显示日志，默认`false`
 

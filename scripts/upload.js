@@ -1,5 +1,5 @@
 const {uploadFile} = require("../oss/oss");
-const {message, getOptions, getReaddir} = require("../base");
+const {message, getOptions, getReaddir, getReadFile} = require("../base");
 const fs = require("fs");
 let version, options;
 
@@ -15,7 +15,7 @@ async function filesEach(files, path){
       version = version || {};
       version[now_path.replace(options.dirname, "").replace(/^(\/|\\)/, "")] = true;
       await uploadFile(now_path);
-    } else if(files[i].isDirectory()){
+    } else {
       let list = await getReaddir(now_path, {withFileTypes: true});
       await filesEach(list, now_path);
     }
@@ -27,8 +27,8 @@ async function writeVersion(){
   try {
     let versionPath = `${options.dirname}/version.json`;
 
-    await fs.writeFileSync(versionPath, JSON.stringify(version));
     version["version.json"] = true;
+    await fs.writeFileSync(versionPath, JSON.stringify(version));
     await uploadFile(versionPath);
   } catch (err) {
     throw err;
