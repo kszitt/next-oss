@@ -52,7 +52,7 @@ async function removePrevFiles(path=options.dirname){
       if(!version[now_path.replace(options.dirname, "").replace(/^(\/|\\)/, "")]){
         await delFile(now_path);
       }
-    } else if(now_build && now_build[0].replace(/static(\/|\\)/, "") !== build_id){
+    } else if(build_id && now_build && now_build[0].replace(/static(\/|\\)/, "") !== build_id){
       await delDir(now_path);
     } else {
       await removePrevFiles(now_path);
@@ -69,7 +69,7 @@ async function clearBuildFile(){
     // 删除本地之前版本的文件
     version = getReadFile(`${options.dirname}/version.json`);
     version = JSON.parse(version);
-    build_id = getReadFile(`${options.dirname}/BUILD_ID`);
+    if(options.isNext) build_id = getReadFile(`${options.dirname}/BUILD_ID`);
     await removePrevFiles();
 
     // message("删除本地之前版本的文件成功")

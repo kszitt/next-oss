@@ -1,6 +1,6 @@
 {
   "name": "next-oss",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "description": "webpack打包文件上传到OSS",
   "main": "index.js",
   "scripts": {},

@@ -20,8 +20,8 @@ async function uploadFile(path){
     options = options || getOptions();
 
     oss_path =  options.isNext ?
-      path.replace(/.+?\.next\//, options.folder+"/_next/") :
-      path.replace(options.dirname, options.folder);
+      path.replace(/.+?\.next\//, options.OSSFolder+"/_next/") :
+      path.replace(options.path, options.OSSFolder);
 
     await client.put(oss_path, path);
     message(`上传：${path.replace(options.dirname, "").replace(/^(\/|\\)/, "")} ==>> ${options.OSSDomainName ? (options.OSSDomainName + "/") : ""}${oss_path}`);
@@ -63,8 +63,10 @@ async function deleteFile(file){
 }
 
 
-exports.initAliyun = initAliyun;
-exports.uploadFile = uploadFile;
-exports.getFile = getFile;
-exports.getListByFolder = getListByFolder;
-exports.deleteFile = deleteFile;
+module.exports = {
+  deleteFile,
+  getListByFolder,
+  getFile,
+  uploadFile,
+  initAliyun,
+}
