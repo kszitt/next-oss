@@ -1,122 +1,193 @@
-const OSS = require("./oss/oss");
+const OSS = require("./oss");
 const Base = require("./base");
-const {upload} = require("./scripts/upload");
-const {remove} = require("./scripts/remove");
-const {clearBuildFile} = require("./scripts/clearBuildFile");
 
 
 class NextOSS {
   constructor(options){
     let defaultOptions = {
-      log: false,
+      log: true,
       disable: false,
-      removePrevVersion: true,
+      removePrevVersion: false,
       cover: true
     };
     this.options = Object.assign(defaultOptions, options);
   }
 
   apply(compiler){
-    // console.log(compiler.options);
-
     // 初始化
     this.options.path = compiler.options.output.path;
-    if(/\.next$/.test(this.options.path)) this.options.isNext = true;
-    const {OSSFolder, OSSDomainName} = require(compiler.options.context + "/package.json");
+    if(/\.next([\/\\]server)?$/.test(this.options.path)) {
+      this.options.isNext = true;
+      this.options.isServer = /server$/.test(this.options.path);
+    }
+    const {OSSFolder, OSSDomainName, OSSProduction} = require(compiler.options.context + "/package.json");
     this.options.OSSFolder = OSSFolder;
     this.options.OSSDomainName = OSSDomainName;
+    if(this.options.isNext){
+      this.options.disable = process.env.NODE_ENV === "production" ? !OSSProduction : true;
+    }
+    
+    // 不是打包的时候不执行
+    let script = process.title === "npm" ? process.env.npm_lifecycle_script : process.title;
+    if(
+      (this.options.isNext && !/next.+?build/.test(script)) ||
+      (!this.options.isNext && !/webpack(?!-dev-server)/.test(script))
+    ){
+      return;
+    }
+
+    if(this.options.disable) return;
+    
+    if(!this.options.isNext){
+      compiler.options.output.publicPath = `${OSSDomainName}/${OSSFolder}/`;
+    }
+
+    if(!this.options.OSSFolder){
+      console.warn("必须传入云端目录。本次打包将不上传");
+      return;
+    }
 
     // 打包完成后
     compiler.plugin('afterEmit', async compilation => {
-      if(this.options.disable) return;
-
-      let assets = [];
+      
+      // 打包输出的文件
+      let isServer = this.options.isServer;
+      global.OSSUpload = global.OSSUpload || new Set();
       for(let k in compilation.assets){
-        assets.push(k);
+        let name = k.replace(/\\/g, "/");
+        if(/^\.\.\/(static\/)/.test(name)){
+          name = name.replace(/^\.\.\/(static\/)/, "$1");
+        } else if(isServer){
+          name = "server/" + name;
+        }
+        global.OSSUpload.add(name);
       }
-      this.options.assets = assets;
+      if(this.options.isNext){
+        global.OSSUpload.add(`${isServer ? "server/" : ""}records.json`);
+        if(!isServer) global.OSSUpload.add("BUILD_ID");
+      }
+
+      if(!this.options.cover){
+        for(let item of global.OSSUpload){
+          if(/\.(woff|svg|ttf|eot|woff2|png|jpg|gif)(\?.*)?$/.test(item)){
+            global.OSSUpload.delete(item);
+          }
+        }
+      }
+      if(this.options.isNext && this.options.isServer) return;
+      this.options.assets = Array.from(global.OSSUpload);
+      this.OSSUploaded = 0;
+
       this.init();
       if(!this.oss.type){
         console.warn("必须传入云端平台，目前只支持aliyun。本次打包将不上传");
         return;
       }
 
-      this.upload();
+      this.script();
     });
   }
 
   init(){
-    if(!this.options.OSSFolder){
-      console.warn("必须传入云端目录。本次打包将不上传");
-      return;
-    }
-
     this.oss = new OSS(this.options);
   }
 
   // 日志
   message(){
-    if(this.options.log) console.log(...arguments);
+    if(!this.options.log) return;
+
+    let string = "";
+    for(let i = 0; i < arguments.length; i++){
+      string += arguments[i];
+    }
+    console.log(string);
   }
 
-  // 上传
-  async upload(){
-    await this.fileUpload(this.options.path);
-    this.message("本地上传成功");
+  // 执行
+  async script(){
+    await this.upload(this.options.path);
+    console.log("本地文件上传成功");
 
+    if(!this.options.removePrevVersion) return;
     await this.remove();
-    this.message("云端上个版本文件清除成功");
+    console.log("云端上个版本文件清除成功");
   }
 
   // 上传文件、删除本地文件
-  async fileUpload(path, folder=""){
-    let files = await Base.getReaddir(path, {withFileTypes: true}),
-      result;
-    if(!files || files.length === 0) return;
+  async upload(path, folder=""){
+    try {
+      let files = await Base.getReaddir(path, {withFileTypes: true}),
+        assets = this.options.assets,
+        result;
+      if(!files || files.length === 0) return;
 
-    for(let i = 0; i < files.length; i++){
-      let file = files[i],
-        filePath = `${path}/${file.name}`,
-        OSSPath;
-      result = undefined;
-      if(/node_modules/.test(filePath)) continue;
+      for(let i = 0; i < files.length; i++){
+        let file = files[i],
+          filePath = `${path}/${file.name}`,
+          OSSPath;
+        result = undefined;
+        if(/node_modules/.test(filePath)) continue;
 
-      switch(true){
-        case file.isFile() && this.options.assets.filter(it => it === folder + file.name).length > 0:
-          OSSPath = this.options.isNext ?
-            filePath.replace(/.+?\.next\//, this.options.OSSFolder+"/_next/") :
-            filePath.replace(this.options.path, this.options.OSSFolder);
-          result = await this.oss.uploadFile(filePath, OSSPath, this.options.cover);
-          if(result) this.message(folder + file.name, " ==>> ", this.options.OSSDomainName + "/" + OSSPath);
-          break;
-        case file.isFile():
-          await Base.delFile(filePath);
-          this.message("删除本地文件：", folder + file.name);
-          break;
+        switch(true){
+          case file.isFile() && assets.filter(it => it === folder + file.name).length > 0:
+            OSSPath = this.options.isNext ?
+              filePath.replace(/.+?\.next[\/\\]/, this.options.OSSFolder+"/_next/") :
+              filePath.replace(this.options.path, this.options.OSSFolder);
+            result = await this.oss.uploadFile(filePath, OSSPath, this.options.cover);
+            ++this.OSSUploaded;
+            if(result){
+              this.message(
+                `上传文件[${this.OSSUploaded}/${assets.length}]：`,
+                folder + file.name, " ==>> ",
+                this.options.OSSDomainName + "/" + OSSPath
+              );
+            }
+            break;
+          case file.isFile() && !this.options.cover && /\.(woff|svg|ttf|eot|woff2|png|jpg|gif)(\?.*)?$/.test(file.name):
+
+            break;
+          case file.isFile():
+            await Base.delFile(filePath);
+            // this.message("删除本地文件：", folder + file.name);
+            break;
+        }
+        if(!file.isFile()) await this.upload(filePath, folder+file.name+"/");
       }
-      if(!file.isFile()) await this.fileUpload(filePath, folder+file.name+"/");
+      result = await Base.delEmptyDir(path);
+      // if(result) this.message("删除空文件夹：", path.replace(this.options.path, "").replace(/^[\/\\]+/, ""));
+    } catch(err){
+      throw err;
     }
-    result = await Base.delEmptyDir(path);
-    if(result) this.message("删除空文件夹：", path);
   }
 
   // 删除云端文件
   async remove(){
-    let path = this.options.OSSFolder + (this.options.isNext ? "/_next/" : "/"),
-      cloudFiles = await this.oss.getListByFolder(path);
+    try {
+      let path = this.options.OSSFolder + (this.options.isNext ? "/_next/" : "/"),
+        assets = this.options.assets,
+        cloudFiles = await this.oss.getListByFolder(path);
 
-    for(let i = 0; i < cloudFiles.length; i++){
-      let name = cloudFiles[i].name,
-        file = name.replace(this.options.OSSFolder+"/", ""),
-        result;
-      if(!file) continue;
+      for(let i = 0; i < assets.length; i++){
+        cloudFiles = cloudFiles.filter(item =>
+          assets[i] !== item.name.replace(this.options.OSSFolder, "").replace(/^\/(_next\/)?/, ""));
+      }
+      if(!this.options.cover){
+        cloudFiles = cloudFiles.filter(item => !/\.(woff|svg|ttf|eot|woff2|png|jpg|gif)(\?.*)?$/.test(item.name));
+      }
 
-      if(this.options.assets.filter(item => item === file).length === 0){
+      for(let i = 0; i < cloudFiles.length; i++){
+        let name = cloudFiles[i].name,
+          file = name.replace(this.options.OSSFolder+"/", ""),
+          result;
+        if(!file) continue;
+
         result = await this.oss.deleteFile(name);
         if(result.res && result.res.status >= 200 && result.res.status < 300){
-          this.message("云端文件删除：", name);
+          this.message(`云端文件删除[${i+1}/${cloudFiles.length}]：`, this.options.OSSDomainName + "/" + name);
         }
       }
+    } catch(err){
+      throw err;
     }
   }
 }

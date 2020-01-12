@@ -2,19 +2,23 @@ const fs = require("fs");
 
 
 // 获取文件夹下所有的文件、文件夹
-function getReaddir(path, options){
-  return fs.readdirSync(path, options);
+async function getReaddir(path, options){
+  return await fs.readdirSync(path, options);
 }
 
 // 获取本地文件内容
-function getReadFile(path){
-  return fs.readFileSync(path, {encoding: "utf8"});
+async function getReadFile(path){
+  try {
+    return await fs.readFileSync(path, {encoding: "utf8"});
+  } catch(err) {
+    
+  }
 }
 
 // 删除空文件夹
 async function delEmptyDir(path){
   try {
-    fs.rmdirSync(path);
+    await fs.rmdirSync(path);
     return true;
   } catch(err){
 

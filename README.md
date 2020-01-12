@@ -19,21 +19,23 @@ Node.js >= 10.10.0 required
 ```jsx
 // package.json
 {
-  "folder": "<云端文件夹>",
   "OSSDomainName": "<云端域名>",
+  "OSSFolder": "<云端文件夹>",
+  "OSSProduction": <:boolean>, // 生产模式是否使用OSS
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack",  // cross-env 请自行安装
+  }
 }
 ```
 #### webpack配置文件
 ```jsx
 // webpack.config.js
 const NextOss = require('next-oss');
-const {folder} = require('./package.json');
 
 ...
 plugins: [
   ...
   new NextOss({
-    folder,
     disable: process.env.NODE_ENV !== "production",
     aliyun: {
       region: "<OSS region>",
@@ -44,15 +46,21 @@ plugins: [
   })
 ]
 ```
+#### 部署
+``` hash
+npm run build
+// 将打包文件夹下的index.html文件部署到服务器，确保能访问到
+```
 ## `next`框架
 #### 添加命令
 ```jsx
 // package.json
 {
-  "folder": "<云端文件夹>",
   "OSSDomainName": "<云端域名>",
+  "OSSFolder": "<云端文件夹>",
+  "OSSProduction": <:boolean>, // 开发模式是否使用OSS
   "scripts": {
-    "build": "cross-env NODE_ENV=production next build",  // 打包命令
+    "build": "cross-env NODE_ENV=production next build",  // 打包命令（cross-env 请自行安装）
     "start": "cross-env NODE_ENV=production node server.js"   // 启动服务（这里不能用next start，得自定义服务端）
   }
 }
@@ -62,17 +70,19 @@ plugins: [
 // server.js
 const express = require('express');
 const next = require('next');
-const {folder, OSSDomainName} = require('./package.json');
+const {OSSFolder, OSSDomainName, OSSProduction} = require('./package.json');
 const { NODE_ENV, PORT=3000 } = process.env;
 const dev = NODE_ENV !== 'production';
+const Prod = NODE_ENV === "production";
 const app = next({dir: '.', dev});
 
+// 是否使用OSS（只有生产模式可以使用OSS，开发模式无效）
+if(Prod ? OSSProduction : false){
+  app.setAssetPrefix(`${OSSDomainName}/${OSSFolder}/`);
+}
 
 app.prepare().then(() => {
     const server = express();
-
-    // 动态前缀
-    if(NODE_ENV === "production") app.setAssetPrefix(`${OSSDomainName}/${folder}`);
 
     server.listen(PORT, (err) => {
       if (err) {
@@ -89,27 +99,28 @@ app.prepare().then(() => {
 ```jsx
 // next.config.js
 const NextOss = require('next-oss');
-const {folder} = require('./package.json');
+const {OSSFolder, OSSDomainName, OSSProduction} = require('./package.json');
 const withPlugins = require ("next-compose-plugins");
+const { NODE_ENV } = process.env;
+const Prod = NODE_ENV === "production";
 
 ...
 const nextConfig = {
   webpack: (config, options) => {
     ...
-    if(!options.isServer){
-      config.plugins.push(
-        new NextOss({
-         folder,
-         disable: NODE_ENV !== "production",
-         aliyun: {
-           region: "<OSS region>",
-           accessKeyId: "<Your accessKeyId>",
-           accessKeySecret: "<Your accessKeySecret>",
-           bucket: "<Your bucket name>"
-         }
-        })
-      );
-    }
+    let NextOssOptions = {
+      disable: Prod ? !OSSProduction : true,  // 只有生产模式可以使用OSS，开发模式无效
+      aliyun: {
+        region: "<OSS region>",
+        accessKeyId: "<Your accessKeyId>",
+        accessKeySecret: "<Your accessKeySecret>",
+        bucket: "<Your bucket name>"
+      }
+    };
+    if(!NextOssOptions.disable) options.config.assetPrefix = `${OSSDomainName}/"${OSSFolder}/`;
+    config.plugins.push(
+      new NextOss(NextOssOptions)
+    );
 
     return config;
   }
@@ -117,11 +128,16 @@ const nextConfig = {
 
 module.exports = withPlugins([...], nextConfig);
 ```
+#### 部署
+``` hash
+npm run build
+npm run start
+```
 
 ## NextOSS(options)支持的选项:
-- `Folder` - 将要保存到云端的文件夹。
-- `aliyun` - 初始化阿里云信息。
-- `disable` - 是否禁用，默认`false`
+- `aliyun` - 初始化阿里云OSS信息。
+- `disable` - 是否禁用，默认`false`。开发模式不运行
 - `deletePrevBuildFile` - 是否删除云端以前的版本，默认`false`
-- `log` - 是否显示日志，默认`false`
+- `log` - 是否显示日志，默认`true`
+- `cover` - 图片、字体文件是否覆盖，默认`true`。建议将文件名使用[hash]，然后设为`false`，以提高上传速度。
 

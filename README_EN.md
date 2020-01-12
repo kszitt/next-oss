@@ -21,24 +21,21 @@ Node.js >= 10.10.0 required
 {
   "folder": "<Cloud folder>",
   "OSSDomainName": "<Cloud domain name>",
+  "OSSProduction": <:boolean>, // Whether OSS is used in production mode
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack",  //  Please install cross env yourself
+  }
 }
 ```
 #### Webpack profile
 ```jsx
 // webpack.config.js
 const NextOss = require('next-oss');
-const {folder, OSSDomainName} = require('./package.json');
 
-...
-output: {
-  ...
-  publicPath: process.env.NODE_ENV === "production" ? `${OSSDomainName}/${folder}/` : "/"
-}
 ...
 plugins: [
   ...
   new NextOss({
-    folder,
     disable: process.env.NODE_ENV !== "production",
     aliyun: {
       region: "<OSS region>",
@@ -49,15 +46,21 @@ plugins: [
   })
 ]
 ```
+#### deploy
+``` hash
+npm run build
+// Deploy the index.html file under the package folder to the server to ensure access to
+```
 ## `next` framework
 #### Add command
 ```jsx
 // package.json
 {
-  "folder": "<Cloud folder>",
   "OSSDomainName": "<Cloud domain name>",
+  "OSSFolder": "<Cloud folder>",
+  "OSSProduction": <:boolean>, // Whether OSS is used in production mode
   "scripts": {
-    "build": "cross-env NODE_ENV=production next build",  // build command
+    "build": "cross-env NODE_ENV=production next build",  // build command (Please install cross env yourself)
     "start": "cross-env NODE_ENV=production node server.js"   // start service (You cannot use `next start` here. You need to customize the server)
   }
 }
@@ -67,17 +70,19 @@ plugins: [
 // server.js
 const express = require('express');
 const next = require('next');
-const {folder, OSSDomainName} = require('./package.json');
+const {OSSFolder, OSSDomainName, OSSProduction} = require('./package.json');
 const { NODE_ENV, PORT=3000 } = process.env;
 const dev = NODE_ENV !== 'production';
+const Prod = NODE_ENV === "production";
 const app = next({dir: '.', dev});
 
+// Use OSS or not（Only the production mode can use OSS, and the development mode is invalid）
+if(Prod ? OSSProduction : false){
+  app.setAssetPrefix(`${OSSDomainName}/${OSSFolder}/`);
+}
 
 app.prepare().then(() => {
     const server = express();
-
-    // Dynamic prefix
-    if(NODE_ENV === "production") app.setAssetPrefix(`${OSSDomainName}/${folder}`);
 
     server.listen(PORT, (err) => {
       if (err) {
@@ -94,27 +99,28 @@ app.prepare().then(() => {
 ```jsx
 // next.config.js
 const NextOss = require('next-oss');
-const {folder} = require('./package.json');
+const {OSSFolder, OSSDomainName, OSSProduction} = require('./package.json');
 const withPlugins = require ("next-compose-plugins");
+const { NODE_ENV } = process.env;
+const Prod = NODE_ENV === "production";
 
 ...
 const nextConfig = {
   webpack: (config, options) => {
     ...
-    if(!options.isServer){
-      config.plugins.push(
-        new NextOss({
-         folder,
-         disable: NODE_ENV !== "production",
-         aliyun: {
-           region: "<OSS region>",
-           accessKeyId: "<Your accessKeyId>",
-           accessKeySecret: "<Your accessKeySecret>",
-           bucket: "<Your bucket name>"
-         }
-        })
-      );
-    }
+    let NextOssOptions = {
+      disable: Prod ? !OSSProduction : true,  // Only the production mode can use OSS, and the development mode is invalid
+      aliyun: {
+        region: "<OSS region>",
+        accessKeyId: "<Your accessKeyId>",
+        accessKeySecret: "<Your accessKeySecret>",
+        bucket: "<Your bucket name>"
+      }
+    };
+    if(!NextOssOptions.disable) options.config.assetPrefix = `${OSSDomainName}/"${OSSFolder}/`;
+    config.plugins.push(
+      new NextOss(NextOssOptions)
+    );
 
     return config;
   }
@@ -122,10 +128,15 @@ const nextConfig = {
 
 module.exports = withPlugins([...], nextConfig);
 ```
+#### deploy
+``` hash
+npm run build
+npm run start
+```
 
 ## NextOSS(options):
-- `Folder` - Folder to save to cloud
-- `aliyun` - Initialize aliyun information
-- `disable` - Is it disable? default`false`
+- `aliyun` - Initialize Aliyun cloud OSS information
+- `disable` - Is it disable? default`false`. Development mode does not work
 - `deletePrevBuildFile` - Delete previous versions of cloud, default`false`
-- `log` - Show log or not, default`false`
+- `log` - Show log or not, default`true
+- `cover` - Whether picture and font files are overwritten, default `true`。It is recommended to use [hash] as the file name, and then set it to `false` to improve the upload speed.
