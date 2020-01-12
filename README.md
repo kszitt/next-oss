@@ -2,7 +2,7 @@
 [English](https://github.com/kszitt/next-oss/blob/master/README_EN.md)
 
 ## 描述
-将webpack打包生成的文件上传到云端，以提高加载速度，效果明显   
+将webpack打包生成的文件上传到OSS，以提高加载速度   
 目前，只支持`aliyun`，基于`ali-oss`插件实现。  
 
 ## 安装
@@ -58,7 +58,7 @@ npm run build
 {
   "OSSDomainName": "<云端域名>",
   "OSSFolder": "<云端文件夹>",
-  "OSSProduction": <:boolean>, // 开发模式是否使用OSS
+  "OSSProduction": <:boolean>, // 生产模式是否使用OSS
   "scripts": {
     "build": "cross-env NODE_ENV=production next build",  // 打包命令（cross-env 请自行安装）
     "start": "cross-env NODE_ENV=production node server.js"   // 启动服务（这里不能用next start，得自定义服务端）
