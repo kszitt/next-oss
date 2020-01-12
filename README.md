@@ -134,10 +134,15 @@ npm run build
 npm run start
 ```
 
-## NextOSS(options)支持的选项:
+## NextOSS(options)支持的选项
 - `aliyun` - 初始化阿里云OSS信息。
-- `disable` - 是否禁用，默认`false`。开发模式不运行
+- `disable` - 是否禁用，默认`false`。
 - `deletePrevBuildFile` - 是否删除云端以前的版本，默认`false`
 - `log` - 是否显示日志，默认`true`
-- `cover` - 图片、字体文件是否覆盖，默认`true`。建议将文件名使用[hash]，然后设为`false`，以提高上传速度。
+- `cover` - 图片、字体文件是否覆盖，默认`true`。
+
+## 注意事项
+- `options.disable` 该插件在非生产模式禁用，生产模式可以在`package.json`中的`OSSProduction`设置是否禁用。
+- `options.deletePrevBuildFile` 启用该项会把以前的版本删掉，建议在服务器定期清理。
+- `options.cover` 设置图禁止覆盖时，请将图片、字体的文件名添加[hash]值。否则，会找不到资源
 

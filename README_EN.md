@@ -134,7 +134,7 @@ npm run build
 npm run start
 ```
 
-## NextOSS(options):
+## NextOSS(options)
 - `aliyun` - Initialize Aliyun cloud OSS information
 - `disable` - Is it disable? default`false`. Development mode does not work
 - `deletePrevBuildFile` - Delete previous versions of cloud, default`false`
