@@ -1,9 +1,6 @@
-## 语言
-[English](https://github.com/kszitt/next-oss/blob/master/README_EN.md)
-
 ## 描述
 将webpack打包生成的文件上传到OSS，以提高加载速度   
-目前，只支持`aliyun`，基于`ali-oss`插件实现。  
+目前，支持阿里云、华为云、七牛和又拍云。 
 
 ## 安装
 ```bash
@@ -37,6 +34,22 @@ plugins: [
   ...
   new NextOss({
     disable: process.env.NODE_ENV !== "production",
+    upyun: {
+      serviceName: "<service name>",
+      operatorName: "<operator name>",
+      operatorPassword: "<operator password>",
+    },
+    qiniu: {
+      accessKey: "<ACCESS_KEY>",
+      secretKey: "<SECRET_KEY>",
+      bucket: "<Bucket>"
+    },
+    huawei: {
+      accessKeyId: "<Provide your Access Key>",
+      secretAccessKey: "<Provide your Secret Key>",
+      server: "<https://your-endpoint>",
+      bucket: "<Bucket>"
+    },
     aliyun: {
       region: "<OSS region>",
       accessKeyId: "<Your accessKeyId>",
@@ -110,6 +123,22 @@ const nextConfig = {
     ...
     let NextOssOptions = {
       disable: Prod ? !OSSProduction : true,  // 只有生产模式可以使用OSS，开发模式无效
+      upyun: {
+        serviceName: "<service name>",
+        operatorName: "<operator name>",
+        operatorPassword: "<operator password>",
+      },
+      qiniu: {
+        accessKey: "<ACCESS_KEY>",
+        secretKey: "<SECRET_KEY>",
+        bucket: "<Bucket>"
+      },
+      huawei: {
+        accessKeyId: "<Provide your Access Key>",
+        secretAccessKey: "<Provide your Secret Key>",
+        server: "<https://your-endpoint>",
+        bucket: "<Bucket>"
+      },
       aliyun: {
         region: "<OSS region>",
         accessKeyId: "<Your accessKeyId>",
@@ -135,14 +164,24 @@ npm run start
 ```
 
 ## NextOSS(options)支持的选项
-- `aliyun` - 初始化阿里云OSS信息。
+- `aliyun` - 初始化阿里云OSS。
+- `huawei` - 初始化华为云OBS。
+- `qiniu` - 初始化七牛。
+- `upyun` - 初始化又拍云。
 - `disable` - 是否禁用，默认`false`。
 - `deletePrevBuildFile` - 是否删除云端以前的版本，默认`false`
 - `log` - 是否显示日志，默认`true`
 - `cover` - 图片、字体文件是否覆盖，默认`true`。
 
+## 对象存储CORS规则设置
+- `huawei` 按照[配置桶的CORS](https://support.huaweicloud.com/sdk-browserjs-devg-obs/zh-cn_topic_0181364988.html)中“通过OBS Browser配置桶的CORS”设置
+- `aliyun` 按照[设置CORS](https://help.aliyun.com/document_detail/44570.html?spm=5176.8465980.0.0.12871450vh6n2z)设置CORS
+- `qiniu` 按照[CORS 跨域共享](https://console.upyun.com/services/kszitt/antileechFile/)设置
+
 ## 注意事项
+- <label style="color:red">云端访问权限请设置为“公共读写”或者“公共读”</label>
+- `options`参数中`aliyun`、`huawei`、`qiniu`和`upyun`同时配置只有第一个有效
 - `options.disable` 该插件在非生产模式禁用，生产模式可以在`package.json`中的`OSSProduction`设置是否禁用。
 - `options.deletePrevBuildFile` 启用该项会把以前的版本删掉，建议在服务器定期清理。
-- `options.cover` 设置图禁止覆盖时，请将图片、字体的文件名添加[hash]值。否则，会找不到资源
+- `options.cover` <label style="color:red">设置为`false`不覆盖时，请将图片、字体的文件名添加[hash]值。否则，会找不到资源</label>
 

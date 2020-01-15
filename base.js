@@ -7,9 +7,9 @@ async function getReaddir(path, options){
 }
 
 // 获取本地文件内容
-async function getReadFile(path){
+async function getReadFile(path, encoding="utf8"){
   try {
-    return await fs.readFileSync(path, {encoding: "utf8"});
+    return await fs.readFileSync(path, {encoding});
   } catch(err) {
     
   }

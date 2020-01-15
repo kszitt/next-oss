@@ -20,7 +20,9 @@ class NextOSS {
       this.options.isNext = true;
       this.options.isServer = /server$/.test(this.options.path);
     }
-    const {OSSFolder, OSSDomainName, OSSProduction} = require(compiler.options.context + "/package.json");
+    let {OSSFolder, OSSDomainName, OSSProduction=true} = require(compiler.options.context + "/package.json");
+    OSSFolder = OSSFolder.replace(/([^/])$/, "$1/");
+    OSSDomainName = OSSDomainName.replace(/([^/])$/, "$1/");
     this.options.OSSFolder = OSSFolder;
     this.options.OSSDomainName = OSSDomainName;
     if(this.options.isNext){
@@ -39,20 +41,20 @@ class NextOSS {
     if(this.options.disable) return;
     
     if(!this.options.isNext){
-      compiler.options.output.publicPath = `${OSSDomainName}/${OSSFolder}/`;
+      compiler.options.output.publicPath = `${OSSDomainName}${OSSFolder}`;
     }
 
-    if(!this.options.OSSFolder){
-      console.warn("必须传入云端目录。本次打包将不上传");
+    if(!OSSFolder || !OSSDomainName){
+      console.warn("请在package.json中填入“OSSFolder”和“OSSDomainName”字段。本次打包将不上传");
       return;
     }
 
     // 打包完成后
     compiler.plugin('afterEmit', async compilation => {
-      
-      // 打包输出的文件
       let isServer = this.options.isServer;
       global.OSSUpload = global.OSSUpload || new Set();
+
+      // 本次打包的文件放到全局
       for(let k in compilation.assets){
         let name = k.replace(/\\/g, "/");
         if(/^\.\.\/(static\/)/.test(name)){
@@ -62,18 +64,13 @@ class NextOSS {
         }
         global.OSSUpload.add(name);
       }
+
+      // 添加另外的打包文件
       if(this.options.isNext){
         global.OSSUpload.add(`${isServer ? "server/" : ""}records.json`);
         if(!isServer) global.OSSUpload.add("BUILD_ID");
       }
 
-      if(!this.options.cover){
-        for(let item of global.OSSUpload){
-          if(/\.(woff|svg|ttf|eot|woff2|png|jpg|gif)(\?.*)?$/.test(item)){
-            global.OSSUpload.delete(item);
-          }
-        }
-      }
       if(this.options.isNext && this.options.isServer) return;
       this.options.assets = Array.from(global.OSSUpload);
       this.OSSUploaded = 0;
@@ -131,20 +128,17 @@ class NextOSS {
         switch(true){
           case file.isFile() && assets.filter(it => it === folder + file.name).length > 0:
             OSSPath = this.options.isNext ?
-              filePath.replace(/.+?\.next[\/\\]/, this.options.OSSFolder+"/_next/") :
-              filePath.replace(this.options.path, this.options.OSSFolder);
-            result = await this.oss.uploadFile(filePath, OSSPath, this.options.cover);
-            ++this.OSSUploaded;
+              filePath.replace(/.+?\.next[\/\\]/, this.options.OSSFolder+"_next/") :
+              filePath.replace(this.options.path, this.options.OSSFolder.replace(/\/$/, ""));
+              result = await this.oss.uploadFile(filePath, OSSPath, this.options.cover);
+              ++this.OSSUploaded;
             if(result){
               this.message(
                 `上传文件[${this.OSSUploaded}/${assets.length}]：`,
                 folder + file.name, " ==>> ",
-                this.options.OSSDomainName + "/" + OSSPath
+                this.options.OSSDomainName + OSSPath
               );
             }
-            break;
-          case file.isFile() && !this.options.cover && /\.(woff|svg|ttf|eot|woff2|png|jpg|gif)(\?.*)?$/.test(file.name):
-
             break;
           case file.isFile():
             await Base.delFile(filePath);
@@ -163,13 +157,13 @@ class NextOSS {
   // 删除云端文件
   async remove(){
     try {
-      let path = this.options.OSSFolder + (this.options.isNext ? "/_next/" : "/"),
+      let path = this.options.OSSFolder + (this.options.isNext ? "_next/" : ""),
         assets = this.options.assets,
         cloudFiles = await this.oss.getListByFolder(path);
 
       for(let i = 0; i < assets.length; i++){
         cloudFiles = cloudFiles.filter(item =>
-          assets[i] !== item.name.replace(this.options.OSSFolder, "").replace(/^\/(_next\/)?/, ""));
+          assets[i] !== item.name.replace(this.options.OSSFolder, "").replace(/^_next\//, ""));
       }
       if(!this.options.cover){
         cloudFiles = cloudFiles.filter(item => !/\.(woff|svg|ttf|eot|woff2|png|jpg|gif)(\?.*)?$/.test(item.name));
@@ -177,13 +171,13 @@ class NextOSS {
 
       for(let i = 0; i < cloudFiles.length; i++){
         let name = cloudFiles[i].name,
-          file = name.replace(this.options.OSSFolder+"/", ""),
+          file = name.replace(this.options.OSSFolder, ""),
           result;
         if(!file) continue;
 
         result = await this.oss.deleteFile(name);
-        if(result.res && result.res.status >= 200 && result.res.status < 300){
-          this.message(`云端文件删除[${i+1}/${cloudFiles.length}]：`, this.options.OSSDomainName + "/" + name);
+        if(result){
+          this.message(`云端文件删除[${i+1}/${cloudFiles.length}]：`, this.options.OSSDomainName + name);
         }
       }
     } catch(err){
