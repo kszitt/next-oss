@@ -1,3 +1,6 @@
+## 声明
+目前，`next-oss`包已经不在维护。请`webpack`项目使用[hsuc](https://github.com/kszitt/hsuc); `next`项目请使用[next-hsuc](https://github.com/kszitt/next-hsuc)
+
 ## 描述
 将webpack打包生成的文件上传到OSS，以提高加载速度   
 目前，支持阿里云、华为云、七牛和又拍云。 
@@ -13,7 +16,7 @@ Node.js >= 10.10.0 required
 
 ## 非`next`框架
 #### 添加命令
-```jsx
+```bash
 // package.json
 {
   "OSSDomainName": "<云端域名>",
@@ -25,7 +28,7 @@ Node.js >= 10.10.0 required
 }
 ```
 #### webpack配置文件
-```jsx
+```bash
 // webpack.config.js
 const NextOss = require('next-oss');
 
@@ -66,7 +69,7 @@ npm run build
 ```
 ## `next`框架
 #### 添加命令
-```jsx
+```bash
 // package.json
 {
   "OSSDomainName": "<云端域名>",
@@ -79,7 +82,7 @@ npm run build
 }
 ```
 #### 自定义服务端
-```jsx
+```bash
 // server.js
 const express = require('express');
 const next = require('next');
@@ -109,7 +112,7 @@ app.prepare().then(() => {
   });
 ```
 #### webpack配置
-```jsx
+```bash
 // next.config.js
 const NextOss = require('next-oss');
 const {OSSFolder, OSSDomainName, OSSProduction} = require('./package.json');
